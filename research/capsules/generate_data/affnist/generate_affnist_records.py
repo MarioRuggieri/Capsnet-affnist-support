@@ -4,6 +4,11 @@ import scipy.io as sio
 import tensorflow as tf
 from itertools import izip
 
+FLAGS = tf.flags.FLAGS
+
+tf.flags.DEFINE_string('data_dir', '../../data/affnist_data', 'The affnist data directory.')
+tf.flags.DEFINE_string('testdata_dir', '../../testdata/affnist/', 'The affnist datatest directory')
+
 # image size
 IMG_LEN = 40; IMG_DEPTH = 1
 
@@ -56,16 +61,14 @@ def save_tfrecords(images,labels,filename,testfilename):
     writer.close()
 
 if __name__ == "__main__":
-    affnist_path = '../../data/affnist_data'
-    affnist_datatest_path = '../../testdata/affnist/'
-    train_records_path = os.path.join(affnist_path,'affnist_train.tfrecords')
-    train_datatest_path = os.path.join(affnist_datatest_path,'affnist_train.tfrecords')
-    test_records_path = os.path.join(affnist_path,'affnist_test.tfrecords')
-    test_datatest_path = os.path.join(affnist_datatest_path, 'affnist_test.tfrecords')
+    train_records_path = os.path.join(FLAGS.data_dir,'affnist_train.tfrecords')
+    train_datatest_path = os.path.join(FLAGS.testdata_dir,'affnist_train.tfrecords')
+    test_records_path = os.path.join(FLAGS.data_dir,'affnist_test.tfrecords')
+    test_datatest_path = os.path.join(FLAGS.testdata_dir, 'affnist_test.tfrecords')
 
     if not os.path.exists(train_records_path):
         print("Loading training data...")
-        train_img, train_lab = read_data(os.path.join(affnist_path,'training_batches'),'train')
+        train_img, train_lab = read_data(os.path.join(FLAGS.data_dir,'training_batches'),'train')
         print("Number of training samples: " + str(train_img.shape[0]) + "\nGenerating tfrecords file...")
         save_tfrecords(train_img, train_lab, train_records_path, train_datatest_path)
     else:
@@ -73,7 +76,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(test_records_path):
         print("Loading testing data...")
-        test_img, test_lab = read_data(os.path.join(affnist_path,'test.mat'),'test')
+        test_img, test_lab = read_data(os.path.join(FLAGS.data_dir,'test.mat'),'test')
         print("Number of test samples: " + str(test_img.shape[0]) + "\nGenerating tfrecords file...")
         save_tfrecords(test_img, test_lab, test_records_path, test_datatest_path)
     else:
