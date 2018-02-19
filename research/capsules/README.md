@@ -39,6 +39,16 @@ python experiment.py --data_dir=$DATA_DIR --train=false --dataset=cifar10 \
 --num_trials=7
 ```
 
+Download and generate AFFNIST data and testdata:
+
+* Download and extract to $DATA_DIR/affnist_data test.mat.zip (test set) and training_batches.zip (training set)
+  from http://www.cs.toronto.edu/~tijmen/affNIST/32x/transformed/
+* Run generate_data/affnist/generate_affnist_records.py passing $DATA_DIR/affnist_data as data_dir and the test data directory as testdata_dir
+
+```
+python generate_affnist_records.py --data_dir=$DATA_DIR/affnist_data --testdata_dir= $TESTDATA_DIR/affnist/
+```
+
 Sample CIFAR10 training command:
 
 ```
@@ -46,6 +56,24 @@ python experiment.py --data_dir=$DATA_DIR --dataset=cifar10 --max_steps=600000\
 --hparams_override=num_prime_capsules=64,padding=SAME,leaky=true,remake=false \
 --summary_dir=/tmp/
 ```
+
+Sample AFFNIST training command:
+
+* If you want to train your model on the affnist training set:
+
+```
+python experiment.py --data_dir=$DATA_DIR/affnist_data/ --max_steps=300000\
+--summary_dir=/tmp/attempt0/
+```
+* If you want to train your model on the expanded mnist training set, first you have to generate it:
+
+```
+python mnist_shift.py --data_dir=$DATA_DIR/mnist_data --shift=6 --pad=6
+python experiment.py --data_dir=$DATA_DIR/mnist_data/ --max_steps=300000\
+--summary_dir=/tmp/attempt0/
+```
+
+To test on the affnist test set pass --data_dir=$DATA_DIR/affnist_data/ and --train=false
 
 Sample MNIST full training command:
 
@@ -56,7 +84,6 @@ Sample MNIST full training command:
 python experiment.py --data_dir=$DATA_DIR/mnist_data/ --max_steps=300000\
 --summary_dir=/tmp/attempt0/
 ```
-
 
 Sample MNIST baseline training command:
 
@@ -91,9 +118,5 @@ Sample code to generate multiMNIST test split:
 python mnist_shift.py --data_dir=$DATA_DIR/mnist_data/ --split=test --shift=6 
 --pad=4 --num_pairs=1000 --max_shard=100000 --multi_targets=true
 ```
-
-To build expanded_mnist for affNIST generalizability pass --shift=6 --pad=6.
-
-The code to read affNIST is to follow.
 
 Maintained by Sara Sabour (sarasra, sasabour@google.com).
