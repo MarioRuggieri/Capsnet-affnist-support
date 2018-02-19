@@ -30,23 +30,20 @@ import tensorflow as tf
 from input_data.cifar10 import cifar10_input
 from input_data.mnist import mnist_input_record
 from input_data.norb import norb_input_record
+from input_data.affnist import affnist_input_record
 from models import capsule_model
 from models import conv_model
 
 FLAGS = tf.flags.FLAGS
 
 tf.flags.DEFINE_string('data_dir', None, 'The data directory.')
-tf.flags.DEFINE_integer('eval_size', 10000, 'Size of the test dataset.')
+tf.flags.DEFINE_integer('eval_size', 320000, 'Size of the test dataset.')
 tf.flags.DEFINE_string('hparams_override', None,
                        'A string of form key=value,key=value to override the'
                        'hparams of this experiment.')
 tf.flags.DEFINE_integer('max_steps', 1000, 'Number of steps to train.')
-tf.flags.DEFINE_string('model', 'capsule',
-                       'The model to use for the experiment.'
-                       'capsule or baseline')
-tf.flags.DEFINE_string('dataset', 'mnist',
-                       'The dataset to use for the experiment.'
-                       'mnist, norb, cifar10.')
+tf.flags.DEFINE_string('model', 'capsule','The model to use for the experiment, capsule or baseline')
+tf.flags.DEFINE_string('dataset', 'affnist', 'The dataset to use for the experiment: mnist, affnist, norb, cifar10')
 tf.flags.DEFINE_integer('num_gpus', 1, 'Number of gpus to use.')
 tf.flags.DEFINE_integer('num_targets', 1,
                         'Number of targets to detect (1 or 2).')
@@ -92,8 +89,15 @@ def get_features(split, total_batch_size, num_gpus, data_dir, num_targets,
   features = []
   for i in range(num_gpus):
     with tf.device('/gpu:%d' % i):
-      if dataset == 'mnist':
-        features.append(
+      if dataset == 'affnist':
+          features.append(
+              affnist_input_record.inputs(
+                  data_dir=data_dir,
+                  batch_size=batch_size,
+                  split=split
+              ))
+      elif dataset == 'mnist':
+          features.append(
             mnist_input_record.inputs(
                 data_dir=data_dir,
                 batch_size=batch_size,
@@ -102,13 +106,13 @@ def get_features(split, total_batch_size, num_gpus, data_dir, num_targets,
                 validate=validate,
             ))
       elif dataset == 'norb':
-        features.append(
+          features.append(
             norb_input_record.inputs(
                 data_dir=data_dir, batch_size=batch_size, split=split,
             ))
       elif dataset == 'cifar10':
-        data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
-        features.append(
+          data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+          features.append(
             cifar10_input.inputs(
                 split=split, data_dir=data_dir, batch_size=batch_size))
       else:
@@ -267,15 +271,14 @@ def run_experiment(loader,
     save_step: How often the training model should be saved.
   """
   session = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
-  init_op = tf.group(tf.global_variables_initializer(),
-                     tf.local_variables_initializer())
+  init_op = tf.group(tf.global_variables_initializer(),tf.local_variables_initializer())
   session.run(init_op)
   saver = tf.train.Saver(max_to_keep=1000)
   last_step = loader(saver, session, load_dir)
   coord = tf.train.Coordinator()
   threads = tf.train.start_queue_runners(sess=session, coord=coord)
   try:
-    experiment(
+        experiment(
         session=session,
         result=result,
         writer=writer,
@@ -285,9 +288,9 @@ def run_experiment(loader,
         summary_dir=load_dir,
         save_step=save_step)
   except tf.errors.OutOfRangeError:
-    tf.logging.info('Finished experiment.')
+        tf.logging.info('Finished experiment.')
   finally:
-    coord.request_stop()
+        coord.request_stop()
   coord.join(threads)
   session.close()
 
