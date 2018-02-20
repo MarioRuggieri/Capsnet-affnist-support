@@ -62,14 +62,14 @@ Sample AFFNIST training command:
 * If you want to train your model on the affnist training set:
 
 ```
-python experiment.py --data_dir=$DATA_DIR/affnist_data/ --max_steps=300000\
+python experiment.py --dataset=affnist --data_dir=$DATA_DIR/affnist_data/ --max_steps=300000\
 --summary_dir=/tmp/attempt0/
 ```
 * If you want to train your model on the expanded mnist training set, first you have to generate it:
 
 ```
 python mnist_shift.py --data_dir=$DATA_DIR/mnist_data --shift=6 --pad=6
-python experiment.py --data_dir=$DATA_DIR/mnist_data/ --max_steps=300000\
+python experiment.py --dataset=affnist --data_dir=$DATA_DIR/mnist_data/ --max_steps=300000\
 --summary_dir=/tmp/attempt0/
 ```
 
